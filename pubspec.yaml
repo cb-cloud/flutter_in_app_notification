@@ -1,0 +1,18 @@
+name: in_app_notification
+description: A new Flutter package project.
+version: 0.0.1
+repository: https://github.com/cb-cloud/flutter_in_app_notification
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
