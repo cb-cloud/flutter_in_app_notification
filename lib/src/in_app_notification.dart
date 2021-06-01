@@ -1,6 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+@visibleForTesting
+const notificationShowingDuration = Duration(milliseconds: 350);
 
 /// A widget for display foreground notification.
 ///
@@ -75,14 +79,14 @@ class InAppNotificationState extends State<InAppNotification>
   @override
   void initState() {
     _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 350));
+        AnimationController(vsync: this, duration: notificationShowingDuration);
     final curve = CurvedAnimation(parent: _controller, curve: Curves.ease);
     _initialPosition = -widget.minAlertHeight - widget.safeAreaPadding.top;
     _alertAnimation = Tween(begin: _initialPosition, end: 0.0).animate(curve);
     super.initState();
   }
 
-  void show({
+  Future<void> show({
     @required Widget child,
     VoidCallback onTap,
     Duration duration = const Duration(seconds: 10),
