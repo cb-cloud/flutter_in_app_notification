@@ -23,15 +23,6 @@ const notificationShowingDuration = Duration(milliseconds: 350);
 /// );
 /// ```
 /// {@end-tool}
-///
-/// Showing and hiding notifications is managed by animation,
-/// and the process is as follows.
-///
-/// 1. Execute `show` method, start animation.
-/// 2. After the notification appears at the specified time,
-///    it is displayed for the specified `duration`.
-/// 3. After the `duration` has elapsed,
-///    play the animation in reverse and dispose the notification.
 class InAppNotification extends StatefulWidget {
   /// Creates an in-app notification system.
   ///
@@ -86,6 +77,17 @@ class InAppNotificationState extends State<InAppNotification>
     super.initState();
   }
 
+  /// Shows specified Widget as notification.
+  ///
+  /// [child] is required, this will be displayed as notification body.
+  ///
+  /// Showing and hiding notifications is managed by animation,
+  /// and the process is as follows.
+  ///
+  /// 1. Execute this method, start animation.
+  /// 2. Then the notification appear, it will stay at specified [duration].
+  /// 3. After the [duration] has elapsed,
+  ///    play the animation in reverse and dispose the notification.
   Future<void> show({
     @required Widget child,
     VoidCallback onTap,
