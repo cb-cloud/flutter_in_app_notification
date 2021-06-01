@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 
@@ -35,6 +37,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _count = 0;
+  int _duration = 3000;
 
   void _incrementCount() => setState(() => _count++);
 
@@ -49,13 +52,22 @@ class _HomePageState extends State<HomePage> {
           children: [
             Text('Current count: $_count'),
             const SizedBox(height: 32),
+            Text('Duration: $_duration ms'),
+            const SizedBox(height: 16),
+            Slider.adaptive(
+              value: _duration.toDouble(),
+              onChanged: (value) => setState(() => _duration = value.toInt()),
+              min: 500,
+              max: 5000,
+            ),
+            const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
                 _incrementCount();
                 InAppNotification.of(context).show(
                   child: NotificationBody(count: _count),
                   onTap: () => print('Notification tapped!'),
-                  duration: const Duration(seconds: 3),
+                  duration: Duration(milliseconds: _duration),
                 );
               },
               child: Text('Show Notification'),
@@ -67,6 +79,9 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+/// An example of notification Widget.
+///
+/// Please replace this into your own Widget.
 class NotificationBody extends StatelessWidget {
   final int count;
 
@@ -78,26 +93,42 @@ class NotificationBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              spreadRadius: 8,
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 12,
               blurRadius: 16,
-              offset: Offset(0, 2),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Text(
-              'Count: $count',
-              style: Theme.of(context).textTheme.headline4,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.lightGreen.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(16.0),
+                border: Border.all(
+                  width: 1.4,
+                  color: Colors.lightGreen.withOpacity(0.2),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'Count: $count',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headline4
+                        .copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
