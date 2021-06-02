@@ -1,7 +1,6 @@
 name: Testing
 
 on:
-  push:
   pull_request:
     types: [opened, reopened, ready_for_review]
 
@@ -25,14 +24,10 @@ jobs:
       - name: Testing
         run: flutter test --coverage
 
-      - name: Generate Coverage Report
-        uses: danielpalme/ReportGenerator-GitHub-Action@4.8.9
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@v1
         with:
-          reports: 'coverage/lcov.info'
-          targetdir: 'coverage_report'
-      
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage_report
-          path: coverage_report
+          coverage-files: coverage/lcov.info
+          minimum-coverage: 50
+          artifact-name: code_coverage_report
+          github-token: ${{ secrets.GITHUB_TOKEN }}
