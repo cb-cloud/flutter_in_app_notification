@@ -27,7 +27,7 @@ void main() {
         final notificationKey = GlobalKey<InAppNotificationState>();
         await tester.pumpWidget(base(notificationKey));
 
-        await notificationKey.currentState.show(
+        await notificationKey.currentState?.show(
           child: Center(child: Text('foo')),
           onTap: () {},
           duration: Duration(seconds: 2),
@@ -48,7 +48,7 @@ void main() {
         final notificationKey = GlobalKey<InAppNotificationState>();
         await tester.pumpWidget(base(notificationKey));
 
-        await notificationKey.currentState.show(
+        await notificationKey.currentState?.show(
           child: Center(child: Text('foo')),
           onTap: () => tapped = true,
           duration: Duration(seconds: 2),
