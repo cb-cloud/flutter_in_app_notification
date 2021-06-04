@@ -9,10 +9,10 @@ void main() {
         home: InAppNotification(
           key: key,
           safeAreaPadding: const EdgeInsets.all(0),
+          minAlertHeight: 120.0,
           child: Scaffold(
             body: SizedBox(height: 400, width: 400),
           ),
-          minAlertHeight: 120.0,
         ),
       );
 
