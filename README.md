@@ -42,7 +42,7 @@ A Flutter package to show custom in-app notification with any Widgets.
    ```
 
 ## 🗺 Roadmap / Known issue
-- Null-safety migration
+- ~~Null-safety migration~~ ✅
 - Implementation for more gesture
   - Swipe horizontal
 - Performance optimization
