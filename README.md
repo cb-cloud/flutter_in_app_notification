@@ -1,4 +1,5 @@
 # 💬 in_app_notification
+[![pub package](https://img.shields.io/pub/v/in_app_notification.svg)](https://pub.dev/packages/in_app_notification)
 A Flutter package to show custom in-app notification with any Widgets.
 
 <p align="center">
