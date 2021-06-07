@@ -7,7 +7,7 @@ on:
 jobs:
   flutter:
     runs-on: ubuntu-latest
-    container: cirrusci/flutter:1.22.6
+    container: cirrusci/flutter:2.2.1
 
     steps:
       - uses: actions/checkout@v2
