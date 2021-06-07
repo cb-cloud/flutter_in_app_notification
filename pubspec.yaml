@@ -1,5 +1,5 @@
 name: in_app_notification
-description: A Flutter package for show custom in-app notification.
+description: A Flutter package to show custom in-app notification with any Widgets.
 version: 0.1.0
 repository: https://github.com/cb-cloud/flutter_in_app_notification
 

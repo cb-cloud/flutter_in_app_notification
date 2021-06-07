@@ -1,5 +1,5 @@
 # 💬 in_app_notification
-A Flutter package for show custom in-app notification.
+A Flutter package to show custom in-app notification with any Widgets.
 
 <p align="center">
 <image src="https://raw.githubusercontent.com/wiki/cb-cloud/flutter_in_app_notification/assets/doc/top.gif"/>
