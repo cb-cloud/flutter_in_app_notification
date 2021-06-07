@@ -1,5 +1,6 @@
 # 💬 in_app_notification
-A Flutter package for show custom in-app notification.
+[![pub package](https://img.shields.io/pub/v/in_app_notification.svg)](https://pub.dev/packages/in_app_notification)
+A Flutter package to show custom in-app notification with any Widgets.
 
 <p align="center">
 <image src="https://raw.githubusercontent.com/wiki/cb-cloud/flutter_in_app_notification/assets/doc/top.gif"/>
@@ -41,7 +42,7 @@ A Flutter package for show custom in-app notification.
    ```
 
 ## 🗺 Roadmap / Known issue
-- Null-safety migration
+- ~~Null-safety migration~~ ✅
 - Implementation for more gesture
   - Swipe horizontal
 - Performance optimization

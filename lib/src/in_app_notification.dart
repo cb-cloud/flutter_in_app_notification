@@ -28,12 +28,11 @@ class InAppNotification extends StatefulWidget {
   ///
   /// The [safeAreaPadding] must not be null.
   const InAppNotification({
-    Key key,
-    @required this.safeAreaPadding,
+    Key? key,
+    required this.safeAreaPadding,
     this.minAlertHeight = 120.0,
-    this.child,
-  })  : assert(safeAreaPadding != null),
-        super(key: key);
+    required this.child,
+  }) : super(key: key);
 
   final Widget child;
 
@@ -48,7 +47,7 @@ class InAppNotification extends StatefulWidget {
   /// The default value is 120.0.
   final double minAlertHeight;
 
-  static InAppNotificationState of(BuildContext context) =>
+  static InAppNotificationState? of(BuildContext context) =>
       context.findAncestorStateOfType<InAppNotificationState>();
 
   @override
@@ -57,11 +56,11 @@ class InAppNotification extends StatefulWidget {
 
 class InAppNotificationState extends State<InAppNotification>
     with SingleTickerProviderStateMixin {
-  Widget _body;
-  VoidCallback _onTap;
-  AnimationController _controller;
-  Timer _timer;
-  Animation<double> _alertAnimation;
+  Widget? _body;
+  VoidCallback? _onTap;
+  AnimationController? _controller;
+  Timer? _timer;
+  late Animation<double> _alertAnimation;
   double _initialPosition = 0.0;
   double _dragDistance = 0.0;
 
@@ -71,7 +70,7 @@ class InAppNotificationState extends State<InAppNotification>
   void initState() {
     _controller =
         AnimationController(vsync: this, duration: notificationShowingDuration);
-    final curve = CurvedAnimation(parent: _controller, curve: Curves.ease);
+    final curve = CurvedAnimation(parent: _controller!, curve: Curves.ease);
     _initialPosition = -widget.minAlertHeight - widget.safeAreaPadding.top;
     _alertAnimation = Tween(begin: _initialPosition, end: 0.0).animate(curve);
     super.initState();
@@ -89,13 +88,13 @@ class InAppNotificationState extends State<InAppNotification>
   /// 3. After the [duration] has elapsed,
   ///    play the animation in reverse and dispose the notification.
   Future<void> show({
-    @required Widget child,
-    VoidCallback onTap,
+    required Widget child,
+    VoidCallback? onTap,
     Duration duration = const Duration(seconds: 10),
   }) async {
     _timer?.cancel();
 
-    if (_controller.isCompleted) {
+    if (_controller!.isCompleted) {
       await dismiss();
     }
 
@@ -106,11 +105,11 @@ class InAppNotificationState extends State<InAppNotification>
     });
     _controller?.forward(from: 0.0);
 
-    if (duration?.inMicroseconds == 0) return;
+    if (duration.inMicroseconds == 0) return;
     _timer = Timer(duration, () => dismiss());
   }
 
-  Future dismiss({double from}) async {
+  Future dismiss({double? from}) async {
     _timer?.cancel();
     await _controller?.reverse(from: from ?? 1.0);
     setState(() => _body = null);
@@ -120,7 +119,7 @@ class InAppNotificationState extends State<InAppNotification>
     if (_onTap == null) return;
 
     dismiss();
-    _onTap();
+    _onTap!();
   }
 
   void _onTapDown() {

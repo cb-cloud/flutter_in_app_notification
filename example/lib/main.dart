@@ -8,7 +8,7 @@ void main() {
 }
 
 class App extends StatelessWidget {
-  const App({Key key}) : super(key: key);
+  const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +22,14 @@ class App extends StatelessWidget {
       builder: (context, child) => InAppNotification(
         safeAreaPadding: MediaQuery.of(context).viewPadding,
         minAlertHeight: 60.0,
-        child: child,
+        child: child!,
       ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key key}) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () {
                 _incrementCount();
-                InAppNotification.of(context).show(
+                InAppNotification.of(context)?.show(
                   child: NotificationBody(count: _count),
                   onTap: () => print('Notification tapped!'),
                   duration: Duration(milliseconds: _duration),
@@ -86,7 +86,7 @@ class NotificationBody extends StatelessWidget {
   final int count;
 
   NotificationBody({
-    Key key,
+    Key? key,
     this.count = 0,
   }) : super(key: key);
 
@@ -124,7 +124,7 @@ class NotificationBody extends StatelessWidget {
                     'Count: $count',
                     style: Theme.of(context)
                         .textTheme
-                        .headline4
+                        .headline4!
                         .copyWith(color: Colors.white),
                   ),
                 ),
