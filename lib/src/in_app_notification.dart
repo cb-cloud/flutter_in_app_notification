@@ -103,7 +103,7 @@ class InAppNotificationState extends State<InAppNotification>
       _body = child;
       _onTap = onTap;
     });
-    await _controller?.forward(from: 0.0);
+    _controller?.forward(from: 0.0);
 
     if (duration.inMicroseconds == 0) return;
     _timer = Timer(duration, () => dismiss());
