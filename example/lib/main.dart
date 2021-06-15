@@ -7,22 +7,23 @@ void main() {
   runApp(App());
 }
 
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'In-App Notification Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const HomePage(),
-      builder: (context, child) => InAppNotification(
-        safeAreaPadding: MediaQuery.of(context).viewPadding,
-        minAlertHeight: 60.0,
-        child: child!,
+    return InAppNotification(
+      navigatorKey: navigatorKey,
+      child: MaterialApp(
+        title: 'In-App Notification Demo',
+        navigatorKey: navigatorKey,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: const HomePage(),
       ),
     );
   }
