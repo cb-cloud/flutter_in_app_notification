@@ -19,26 +19,24 @@ A Flutter package to show custom in-app notification with any Widgets.
     import 'package:in_app_notification/in_app_notification.dart';
     ```
 2. Place `InAppNotification` Widget into your app.
-   We recommend to place it in the `builder` of the `MaterialApp`.
 
    ```dart
-    return MaterialApp(
-      home: const HomePage(),
-      builder: (context, child) => InAppNotification(
-        safeAreaPadding: MediaQuery.of(context).viewPadding,
-        minAlertHeight: 60.0,
-        child: child,
+    return InAppNotification(
+      child: MaterialApp(
+        title: 'In-App Notification Demo',
+        home: const HomePage(),
       ),
     );
    ```
 
-3. Get `InAppNotification` instance via `of()` method, and invoke `show()` method.
+3. Invoke `show()` static method of `InAppNotification`.
    
    ```dart
-   InAppNotification.of(context).show(
-       child: YourOwnWidget(),
-       onTap: () => print('Notification tapped!'),
-       duration: Duration(milliseconds: _duration),
+   InAppNotification.show(
+     child: NotificationBody(count: _count),
+     context: context,
+     onTap: () => print('Notification tapped!'),
+     duration: Duration(milliseconds: _duration),
    );
    ```
 
@@ -47,9 +45,9 @@ A Flutter package to show custom in-app notification with any Widgets.
 - Implementation for more gesture
   - Swipe horizontal
 - Performance optimization
-  - Currently `InAppNotification` is recommended to use in `builder` of `MaterialApp`, but it means create instance each time of routing.
+  - ~~Currently `InAppNotification` is recommended to use in `builder` of `MaterialApp`, but it means create instance each time of routing.~~ ✅
 - Animation improvement
-  - So far, we have confirmed that using a Widget with a height higher than the `minAlertHeight ` specified for `InApp` will slightly break the animation.
+  - ~~So far, we have confirmed that using a Widget with a height higher than the `minAlertHeight ` specified for `InApp` will slightly break the animation.~~ ✅
 
 ## 💭 Have a question?
 If you have a question or found issue, feel free to [create an issue](https://github.com/cb-cloud/flutter_in_app_notification/issues/new).
