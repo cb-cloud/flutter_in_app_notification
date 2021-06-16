@@ -3,14 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_notification/in_app_notification.dart';
+import 'package:in_app_notification/src/size_listenable_container.dart';
 
 void main() {
   Widget base(Key key) => MaterialApp(
         home: InAppNotification(
-          key: key,
-          safeAreaPadding: const EdgeInsets.all(0),
-          minAlertHeight: 120.0,
           child: Scaffold(
+            key: key,
             body: SizedBox(height: 400, width: 400),
           ),
         ),
@@ -20,20 +19,39 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
   });
 
+  testWidgets('SizeListenableContainer test.', (tester) async {
+    await tester.runAsync(() async {
+      var widgetSize = Size.zero;
+      await tester.pumpWidget(
+        SizeListenableContainer(
+          onSizeChanged: (size) {
+            widgetSize = size;
+          },
+          child: SizedBox.expand(),
+        ),
+      );
+
+      expect(find.byType(SizeListenableContainer), findsOneWidget);
+      expect(widgetSize, Size(800, 600));
+    });
+  });
+
   testWidgets(
     'InAppNotification should show specified Widget on called `show` method.',
     (tester) async {
       await tester.runAsync(() async {
-        final notificationKey = GlobalKey<InAppNotificationState>();
-        await tester.pumpWidget(base(notificationKey));
+        final key = GlobalKey();
+        await tester.pumpWidget(base(key));
 
-        await notificationKey.currentState?.show(
+        final context = key.currentContext!;
+
+        await InAppNotification.show(
           child: Center(child: Text('foo')),
+          context: context,
           onTap: () {},
           duration: Duration(seconds: 2),
+          notificationCreatedCallback: () async => await tester.pumpAndSettle(),
         );
-
-        await tester.pumpAndSettle();
         expect(find.text('foo'), findsOneWidget);
       });
     },
@@ -45,13 +63,17 @@ void main() {
       await tester.runAsync(() async {
         var tapped = false;
 
-        final notificationKey = GlobalKey<InAppNotificationState>();
-        await tester.pumpWidget(base(notificationKey));
+        final key = GlobalKey();
+        await tester.pumpWidget(base(key));
 
-        await notificationKey.currentState?.show(
+        final context = key.currentContext!;
+
+        await InAppNotification.show(
           child: Center(child: Text('foo')),
+          context: context,
           onTap: () => tapped = true,
           duration: Duration(seconds: 2),
+          notificationCreatedCallback: () async => await tester.pumpAndSettle(),
         );
 
         await tester.pumpAndSettle();

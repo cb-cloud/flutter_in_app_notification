@@ -41,20 +41,29 @@ class InAppNotification extends StatefulWidget {
     VoidCallback? onTap,
     Duration duration = const Duration(seconds: 10),
     Curve curve = Curves.ease,
-  }) =>
-      context.findAncestorStateOfType<InAppNotificationState>()?.show(
-            child: child,
-            context: context,
-            onTap: onTap,
-            duration: duration,
-            curve: curve,
-          );
+    @visibleForTesting FutureOr Function()? notificationCreatedCallback,
+  }) async {
+    final state = context.findAncestorStateOfType<_InAppNotificationState>();
+
+    assert(state != null);
+
+    await state!.create(
+      child: child,
+      context: context,
+      onTap: onTap,
+      curve: curve,
+    );
+    if (kDebugMode) {
+      await notificationCreatedCallback?.call();
+    }
+    state.show(duration: duration);
+  }
 
   @override
-  InAppNotificationState createState() => InAppNotificationState();
+  _InAppNotificationState createState() => _InAppNotificationState();
 }
 
-class InAppNotificationState extends State<InAppNotification>
+class _InAppNotificationState extends State<InAppNotification>
     with SingleTickerProviderStateMixin {
   VoidCallback? _onTap;
   Timer? _timer;
@@ -94,11 +103,10 @@ class InAppNotificationState extends State<InAppNotification>
   /// 2. Then the notification appear, it will stay at specified [duration].
   /// 3. After the [duration] has elapsed,
   ///    play the animation in reverse and dispose the notification.
-  Future<void> show({
+  Future<void> create({
     required Widget child,
     required BuildContext context,
     VoidCallback? onTap,
-    Duration duration = const Duration(seconds: 10),
     Curve curve = Curves.ease,
   }) async {
     await dismiss();
@@ -127,6 +135,11 @@ class InAppNotificationState extends State<InAppNotification>
     );
 
     Navigator.of(context).overlay?.insert(_overlay!);
+  }
+
+  Future<void> show({
+    Duration duration = const Duration(seconds: 10),
+  }) async {
     _notificationSize = await _notificationSizeCompleter.future;
 
     _controller.forward(from: 0.0);
