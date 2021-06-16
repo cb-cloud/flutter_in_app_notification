@@ -9,25 +9,23 @@ const notificationShowingDuration = Duration(milliseconds: 350);
 
 /// A widget for display foreground notification.
 ///
-/// It is mainly intended to be inserted in the `builder` of [WidgetsApp].
+/// It is mainly intended to wrap whole your app Widgets.
+/// e.g. Just wrapping [MaterialApp].
 ///
 /// {@tool snippet}
 /// Usage example:
 ///
 /// ```dart
-/// return MaterialApp(
-///   home: Home(),
-///   builder: (context, child) => AlertNotification(
-///     safeAreaPadding: MediaQuery.of(context).viewPadding,
-///     child: child,
+/// return InAppNotification(
+///   child: MaterialApp(
+///     title: 'In-App Notification Demo',
+///     home: const HomePage(),
 ///   ),
 /// );
 /// ```
 /// {@end-tool}
 class InAppNotification extends StatefulWidget {
   /// Creates an in-app notification system.
-  ///
-  /// The [safeAreaPadding] must not be null.
   const InAppNotification({
     Key? key,
     required this.child,
@@ -35,6 +33,19 @@ class InAppNotification extends StatefulWidget {
 
   final Widget child;
 
+  /// Shows specified Widget as notification.
+  ///
+  /// [child] is required, this will be displayed as notification body.
+  /// [context] is required, this is used to get Navigator instance.
+  ///
+  /// Showing and hiding notifications is managed by animation,
+  /// and the process is as follows.
+  ///
+  /// 1. Execute this method, start animation via call state's `show` method
+  ///    internally.
+  /// 2. Then the notification appear, it will stay at specified [duration].
+  /// 3. After the [duration] has elapsed,
+  ///    play the animation in reverse and dispose the notification.
   static FutureOr<void> show({
     required Widget child,
     required BuildContext context,
@@ -92,17 +103,6 @@ class _InAppNotificationState extends State<InAppNotification>
     _overlay?.markNeedsBuild();
   }
 
-  /// Shows specified Widget as notification.
-  ///
-  /// [child] is required, this will be displayed as notification body.
-  ///
-  /// Showing and hiding notifications is managed by animation,
-  /// and the process is as follows.
-  ///
-  /// 1. Execute this method, start animation.
-  /// 2. Then the notification appear, it will stay at specified [duration].
-  /// 3. After the [duration] has elapsed,
-  ///    play the animation in reverse and dispose the notification.
   Future<void> create({
     required Widget child,
     required BuildContext context,
