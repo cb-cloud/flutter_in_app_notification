@@ -31,15 +31,24 @@ class InAppNotification extends StatefulWidget {
   const InAppNotification({
     Key? key,
     required this.child,
-    required this.navigatorKey,
   }) : super(key: key);
 
   final Widget child;
 
-  final GlobalKey<NavigatorState> navigatorKey;
-
-  static InAppNotificationState? of(BuildContext context) =>
-      context.findAncestorStateOfType<InAppNotificationState>();
+  static FutureOr<void> show({
+    required Widget child,
+    required BuildContext context,
+    VoidCallback? onTap,
+    Duration duration = const Duration(seconds: 10),
+    Curve curve = Curves.ease,
+  }) =>
+      context.findAncestorStateOfType<InAppNotificationState>()?.show(
+            child: child,
+            context: context,
+            onTap: onTap,
+            duration: duration,
+            curve: curve,
+          );
 
   @override
   InAppNotificationState createState() => InAppNotificationState();
@@ -87,6 +96,7 @@ class InAppNotificationState extends State<InAppNotification>
   ///    play the animation in reverse and dispose the notification.
   Future<void> show({
     required Widget child,
+    required BuildContext context,
     VoidCallback? onTap,
     Duration duration = const Duration(seconds: 10),
     Curve curve = Curves.ease,
@@ -116,7 +126,7 @@ class InAppNotificationState extends State<InAppNotification>
       ),
     );
 
-    widget.navigatorKey.currentState?.overlay?.insert(_overlay!);
+    Navigator.of(context).overlay?.insert(_overlay!);
     _notificationSize = await _notificationSizeCompleter.future;
 
     _controller.forward(from: 0.0);

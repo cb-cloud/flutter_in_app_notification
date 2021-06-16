@@ -7,18 +7,14 @@ void main() {
   runApp(App());
 }
 
-final navigatorKey = GlobalKey<NavigatorState>();
-
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InAppNotification(
-      navigatorKey: navigatorKey,
       child: MaterialApp(
         title: 'In-App Notification Demo',
-        navigatorKey: navigatorKey,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -65,8 +61,9 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () {
                 _incrementCount();
-                InAppNotification.of(context)?.show(
+                InAppNotification.show(
                   child: NotificationBody(count: _count),
+                  context: context,
                   onTap: () => print('Notification tapped!'),
                   duration: Duration(milliseconds: _duration),
                 );
