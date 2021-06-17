@@ -36,7 +36,6 @@ A Flutter package to show custom in-app notification with any Widgets.
      child: NotificationBody(count: _count),
      context: context,
      onTap: () => print('Notification tapped!'),
-     duration: Duration(milliseconds: _duration),
    );
    ```
 
