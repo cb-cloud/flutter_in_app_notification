@@ -49,7 +49,7 @@ void main() {
           child: Center(child: Text('foo')),
           context: context,
           onTap: () {},
-          duration: Duration(seconds: 2),
+          duration: Duration.zero,
           notificationCreatedCallback: () async => await tester.pumpAndSettle(),
         );
         expect(find.text('foo'), findsOneWidget);
@@ -72,17 +72,50 @@ void main() {
           child: Center(child: Text('foo')),
           context: context,
           onTap: () => tapped = true,
-          duration: Duration(seconds: 2),
+          duration: Duration.zero,
           notificationCreatedCallback: () async => await tester.pumpAndSettle(),
         );
 
-        await tester.pumpAndSettle();
         await tester.tap(find.text('foo'));
 
         await tester.pumpAndSettle();
 
         expect(tapped, isTrue);
         expect(find.text('foo'), findsNothing);
+      });
+    },
+  );
+
+  testWidgets(
+    'InAppNotification should dismiss on swipe up notification.',
+    (tester) async {
+      await tester.runAsync(() async {
+        final key = GlobalKey();
+        await tester.pumpWidget(base(key));
+
+        final context = key.currentContext!;
+
+        await InAppNotification.show(
+          child: Container(
+            height: 300,
+            color: Colors.green,
+            child: Text('test'),
+          ),
+          context: context,
+          onTap: () {},
+          duration: Duration.zero,
+          notificationCreatedCallback: () async => await tester.pumpAndSettle(),
+        );
+
+        expect(find.text('test'), findsOneWidget);
+
+        await tester.dragFrom(Offset(400, 250), Offset(400, 200));
+        await tester.pumpAndSettle();
+        expect(find.text('test'), findsOneWidget);
+
+        await tester.fling(find.text('test'), Offset(0, -1), 1.0);
+        await tester.pumpAndSettle();
+        expect(find.text('test'), findsNothing);
       });
     },
   );
