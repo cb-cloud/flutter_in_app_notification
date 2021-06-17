@@ -124,7 +124,9 @@ class _InAppNotificationState extends State<InAppNotification>
         }
 
         return Positioned(
-          bottom: MediaQuery.of(context).size.height - _currentPosition,
+          bottom: MediaQuery.of(context).size.height -
+              MediaQuery.of(context).viewPadding.top -
+              _currentPosition,
           left: 0,
           right: 0,
           child: SizeListenableContainer(
@@ -187,8 +189,6 @@ class _InAppNotificationState extends State<InAppNotification>
 
   void _onVerticalDragEnd(DragEndDetails details) async {
     final percentage = _currentPosition.abs() / _notificationSize.height;
-    print(_screenSize);
-    print('velocity: ${details.primaryVelocity}');
     final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
     if (velocity <= -1.0) {
       await dismiss(animationFrom: percentage);
