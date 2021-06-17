@@ -92,6 +92,7 @@ class _InAppNotificationState extends State<InAppNotification>
 
   Size _notificationSize = Size.zero;
   Completer<Size> _notificationSizeCompleter = Completer();
+  Size _screenSize = Size.zero;
 
   @override
   void initState() {
@@ -116,22 +117,29 @@ class _InAppNotificationState extends State<InAppNotification>
     _animation = CurvedAnimation(parent: _controller, curve: curve);
 
     _overlay = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: MediaQuery.of(context).size.height - _currentPosition,
-        left: 0,
-        right: 0,
-        child: SizeListenableContainer(
-          onSizeChanged: (size) => _notificationSizeCompleter.complete(size),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _onTapNotification,
-            onTapDown: (_) => _onTapDown(),
-            onVerticalDragUpdate: _onVerticalDragUpdate,
-            onVerticalDragEnd: (_) => _onVerticalDragEnd(),
-            child: Material(color: Colors.transparent, child: child),
+      builder: (context) {
+        if (_screenSize == Size.zero) {
+          _screenSize = MediaQuery.of(context).size *
+              MediaQuery.of(context).devicePixelRatio;
+        }
+
+        return Positioned(
+          bottom: MediaQuery.of(context).size.height - _currentPosition,
+          left: 0,
+          right: 0,
+          child: SizeListenableContainer(
+            onSizeChanged: (size) => _notificationSizeCompleter.complete(size),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _onTapNotification,
+              onTapDown: (_) => _onTapDown(),
+              onVerticalDragUpdate: _onVerticalDragUpdate,
+              onVerticalDragEnd: _onVerticalDragEnd,
+              child: Material(color: Colors.transparent, child: child),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
 
     Navigator.of(context).overlay?.insert(_overlay!);
@@ -177,9 +185,16 @@ class _InAppNotificationState extends State<InAppNotification>
     _updateNotification();
   }
 
-  void _onVerticalDragEnd() {
+  void _onVerticalDragEnd(DragEndDetails details) async {
     final percentage = _currentPosition.abs() / _notificationSize.height;
-    print(percentage);
+    print(_screenSize);
+    print('velocity: ${details.primaryVelocity}');
+    final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
+    if (velocity <= -1.0) {
+      await dismiss(animationFrom: percentage);
+      return;
+    }
+
     if (percentage >= 0.5) {
       if (_dragDistance == 0.0) return;
       _dragDistance = 0.0;
