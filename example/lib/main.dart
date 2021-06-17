@@ -12,17 +12,14 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'In-App Notification Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const HomePage(),
-      builder: (context, child) => InAppNotification(
-        safeAreaPadding: MediaQuery.of(context).viewPadding,
-        minAlertHeight: 60.0,
-        child: child!,
+    return InAppNotification(
+      child: MaterialApp(
+        title: 'In-App Notification Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: const HomePage(),
       ),
     );
   }
@@ -64,8 +61,9 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () {
                 _incrementCount();
-                InAppNotification.of(context)?.show(
+                InAppNotification.show(
                   child: NotificationBody(count: _count),
+                  context: context,
                   onTap: () => print('Notification tapped!'),
                   duration: Duration(milliseconds: _duration),
                 );
@@ -93,7 +91,7 @@ class NotificationBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: DecoratedBox(
         decoration: BoxDecoration(
           boxShadow: [

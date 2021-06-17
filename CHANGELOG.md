@@ -1,3 +1,13 @@
+## 0.3.0
+### FEAT
+- **BREAKING: Overall, changes API.**
+  - Removed `InAppNotification.of()`. To show notificaiton, use `InAppNotification.show()` instead.
+  - Changed usage of `InAppNotification`, see Usage section in README.
+- Replaced `Stack` with `OverlayEntry` on showing notification sysytem.
+- Removed `minAlertHeight` property. Notification size is decided from specified Widget now.
+- Removed `safeAreaPadding` property. Notification position is now considering safe area automatically.
+- Added `curve` property to `InAppNotification.show()` method.
+
 ## 0.2.0+1
 Organize documents.
 
