@@ -148,11 +148,11 @@ class _InAppNotificationState extends State<InAppNotification>
     _timer = Timer(duration, () => dismiss());
   }
 
-  Future dismiss() async {
+  Future dismiss({double animationFrom = 1.0}) async {
     _timer?.cancel();
 
     if (_controller.status == AnimationStatus.completed) {
-      await _controller.reverse();
+      await _controller.reverse(from: animationFrom);
     }
 
     _overlay?.remove();
@@ -172,21 +172,21 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
-    // _dragDistance =
-    //     (_dragDistance + details.delta.dy).clamp(_initialPosition, 0.0);
+    _dragDistance = (_dragDistance + details.delta.dy)
+        .clamp(-_notificationSize.height, 0.0);
+    _updateNotification();
   }
 
   void _onVerticalDragEnd() {
-    // final percentage = 1.0 - _currentPosition.abs() / _initialPosition.abs();
-    // if (percentage >= 0.4) {
-    //   if (_dragDistance == 0.0) return;
-    //   setState(() {
-    //     _dragDistance = 0.0;
-    //   });
-    //   _controller?.forward(from: percentage);
-    // } else {
-    //   dismiss(from: percentage);
-    // }
+    final percentage = _currentPosition.abs() / _notificationSize.height;
+    print(percentage);
+    if (percentage >= 0.5) {
+      if (_dragDistance == 0.0) return;
+      _dragDistance = 0.0;
+      _controller.forward(from: percentage);
+    } else {
+      dismiss(animationFrom: percentage);
+    }
   }
 
   @override
