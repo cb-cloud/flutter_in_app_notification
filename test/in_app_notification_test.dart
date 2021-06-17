@@ -76,6 +76,7 @@ void main() {
           notificationCreatedCallback: () async => await tester.pumpAndSettle(),
         );
 
+        await tester.pumpAndSettle();
         await tester.tap(find.text('foo'));
 
         await tester.pumpAndSettle();
