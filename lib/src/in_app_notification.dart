@@ -78,13 +78,13 @@ class _InAppNotificationState extends State<InAppNotification>
     with SingleTickerProviderStateMixin {
   VoidCallback? _onTap;
   Timer? _timer;
-  double _dragDistance = 0.0;
+  double _verticalDragDistance = 0.0;
 
   OverlayEntry? _overlay;
   late CurvedAnimation _animation;
 
-  double get _currentPosition =>
-      _animation.value * _notificationSize.height + _dragDistance;
+  double get _currentVerticalPosition =>
+      _animation.value * _notificationSize.height + _verticalDragDistance;
 
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: notificationShowingDuration)
@@ -112,7 +112,7 @@ class _InAppNotificationState extends State<InAppNotification>
   }) async {
     await dismiss();
 
-    _dragDistance = 0.0;
+    _verticalDragDistance = 0.0;
     _onTap = onTap;
     _animation = CurvedAnimation(parent: _controller, curve: curve);
 
@@ -126,7 +126,7 @@ class _InAppNotificationState extends State<InAppNotification>
         return Positioned(
           bottom: MediaQuery.of(context).size.height -
               MediaQuery.of(context).viewPadding.top -
-              _currentPosition,
+              _currentVerticalPosition,
           left: 0,
           right: 0,
           child: SizeListenableContainer(
@@ -182,13 +182,14 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
-    _dragDistance = (_dragDistance + details.delta.dy)
+    _verticalDragDistance = (_verticalDragDistance + details.delta.dy)
         .clamp(-_notificationSize.height, 0.0);
     _updateNotification();
   }
 
   void _onVerticalDragEnd(DragEndDetails details) async {
-    final percentage = _currentPosition.abs() / _notificationSize.height;
+    final percentage =
+        _currentVerticalPosition.abs() / _notificationSize.height;
     final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
     if (velocity <= -1.0) {
       await dismiss(animationFrom: percentage);
@@ -196,8 +197,8 @@ class _InAppNotificationState extends State<InAppNotification>
     }
 
     if (percentage >= 0.5) {
-      if (_dragDistance == 0.0) return;
-      _dragDistance = 0.0;
+      if (_verticalDragDistance == 0.0) return;
+      _verticalDragDistance = 0.0;
       _controller.forward(from: percentage);
     } else {
       dismiss(animationFrom: percentage);
