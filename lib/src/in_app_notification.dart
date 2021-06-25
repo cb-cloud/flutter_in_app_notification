@@ -233,11 +233,21 @@ class _InAppNotificationState extends State<InAppNotification>
       final endValue = _horizontalDragDistance.sign * _screenSize.width;
       _horizontalAnimation =
           Tween(begin: _horizontalDragDistance, end: endValue)
+              .chain(CurveTween(curve: Curves.easeOutCubic))
               .animate(_horizontalAnimationController);
       _horizontalDragDistance = 0.0;
 
       await _horizontalAnimationController.forward(from: 0.0);
       await dismiss();
+    } else {
+      final endValue = 0.0;
+      _horizontalAnimation =
+          Tween(begin: _horizontalDragDistance, end: endValue)
+              .chain(CurveTween(curve: Curves.easeOutCubic))
+              .animate(_horizontalAnimationController);
+      _horizontalDragDistance = 0.0;
+
+      await _horizontalAnimationController.forward(from: 0.0);
     }
   }
 
