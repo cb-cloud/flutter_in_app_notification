@@ -1,3 +1,7 @@
+## 1.0.1
+### FIX
+- Fixed a bug that the notification doesn't apppear when swiping previous one.
+
 ## 1.0.0
 ### FEAT
 - Added horizontal swipe gesture to dismiss notifications.
