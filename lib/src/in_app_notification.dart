@@ -75,6 +75,11 @@ class InAppNotification extends StatefulWidget {
     _state!.show(duration: duration);
   }
 
+  @visibleForTesting
+  static void clearStateCache() {
+    _state = null;
+  }
+
   @override
   _InAppNotificationState createState() => _InAppNotificationState();
 }

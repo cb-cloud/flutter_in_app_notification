@@ -17,6 +17,11 @@ void main() {
 
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    WidgetsBinding.instance!.resetEpoch();
+  });
+
+  tearDown(() {
+    InAppNotification.clearStateCache();
   });
 
   testWidgets('SizeListenableContainer test.', (tester) async {
@@ -115,6 +120,40 @@ void main() {
         expect(find.text('test'), findsOneWidget);
 
         await tester.fling(find.text('test'), Offset(0, -1), 1.0);
+        await tester.pumpAndSettle();
+        expect(find.text('test'), findsNothing);
+      });
+    },
+  );
+
+  testWidgets(
+    'InAppNotification should dismiss on swipe left to right.',
+    (tester) async {
+      await tester.runAsync(() async {
+        final key = GlobalKey();
+        await tester.pumpWidget(base(key));
+
+        final context = key.currentContext!;
+
+        await InAppNotification.show(
+          child: Container(
+            height: 300,
+            color: Colors.green,
+            child: Text('test'),
+          ),
+          context: context,
+          onTap: () {},
+          duration: Duration.zero,
+          notificationCreatedCallback: () async => await tester.pumpAndSettle(),
+        );
+
+        expect(find.text('test'), findsOneWidget);
+
+        await tester.dragFrom(Offset(400, 250), Offset(480, 250));
+        await tester.pumpAndSettle();
+        expect(find.text('test'), findsOneWidget);
+
+        await tester.fling(find.text('test'), Offset(1, 0), 1.0);
         await tester.pumpAndSettle();
         expect(find.text('test'), findsNothing);
       });
