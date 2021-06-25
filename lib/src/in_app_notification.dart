@@ -36,6 +36,8 @@ class InAppNotification extends StatefulWidget {
 
   final Widget child;
 
+  static _InAppNotificationState? _state;
+
   /// Shows specified Widget as notification.
   ///
   /// [child] is required, this will be displayed as notification body.
@@ -57,11 +59,11 @@ class InAppNotification extends StatefulWidget {
     Curve curve = Curves.ease,
     @visibleForTesting FutureOr Function()? notificationCreatedCallback,
   }) async {
-    final state = context.findAncestorStateOfType<_InAppNotificationState>();
+    _state ??= context.findAncestorStateOfType<_InAppNotificationState>();
 
-    assert(state != null);
+    assert(_state != null);
 
-    await state!.create(
+    await _state!.create(
       child: child,
       context: context,
       onTap: onTap,
@@ -70,7 +72,7 @@ class InAppNotification extends StatefulWidget {
     if (kDebugMode) {
       await notificationCreatedCallback?.call();
     }
-    state.show(duration: duration);
+    _state!.show(duration: duration);
   }
 
   @override
