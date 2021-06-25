@@ -112,6 +112,7 @@ class _InAppNotificationState extends State<InAppNotification>
   Size _notificationSize = Size.zero;
   Completer<Size> _notificationSizeCompleter = Completer();
   Size _screenSize = Size.zero;
+  bool _isDismissedByHorizontalSwipe = false;
 
   @override
   void initState() {
@@ -129,7 +130,7 @@ class _InAppNotificationState extends State<InAppNotification>
     VoidCallback? onTap,
     Curve curve = Curves.ease,
   }) async {
-    await dismiss();
+    await dismiss(animationFrom: _isDismissedByHorizontalSwipe ? 0.0 : 1.0);
 
     _verticalDragDistance = 0.0;
     _horizontalDragDistance = 0.0;
@@ -190,6 +191,7 @@ class _InAppNotificationState extends State<InAppNotification>
     _overlay?.remove();
     _overlay = null;
     _notificationSizeCompleter = Completer();
+    _isDismissedByHorizontalSwipe = false;
   }
 
   void _onTapNotification() {
@@ -244,8 +246,8 @@ class _InAppNotificationState extends State<InAppNotification>
               .animate(_horizontalAnimationController);
       _horizontalDragDistance = 0.0;
 
+      _isDismissedByHorizontalSwipe = true;
       await _horizontalAnimationController.forward(from: 0.0);
-      await dismiss();
     } else {
       final endValue = 0.0;
       _horizontalAnimation =
