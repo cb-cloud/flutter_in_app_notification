@@ -30,13 +30,13 @@ const notificationHorizontalAnimationDuration = Duration(milliseconds: 350);
 class InAppNotification extends StatefulWidget {
   /// Creates an in-app notification system.
   const InAppNotification({
-    Key? key,
-    required this.child,
+    Key key,
+    @required this.child,
   }) : super(key: key);
 
   final Widget child;
 
-  static _InAppNotificationState? _state;
+  static _InAppNotificationState _state;
 
   /// Shows specified Widget as notification.
   ///
@@ -52,18 +52,18 @@ class InAppNotification extends StatefulWidget {
   /// 3. After the [duration] has elapsed,
   ///    play the animation in reverse and dispose the notification.
   static FutureOr<void> show({
-    required Widget child,
-    required BuildContext context,
-    VoidCallback? onTap,
+    @required Widget child,
+    @required BuildContext context,
+    VoidCallback onTap,
     Duration duration = const Duration(seconds: 10),
     Curve curve = Curves.ease,
-    @visibleForTesting FutureOr Function()? notificationCreatedCallback,
+    @visibleForTesting FutureOr Function() notificationCreatedCallback,
   }) async {
     _state ??= context.findAncestorStateOfType<_InAppNotificationState>();
 
     assert(_state != null);
 
-    await _state!.create(
+    await _state.create(
       child: child,
       context: context,
       onTap: onTap,
@@ -72,7 +72,7 @@ class InAppNotification extends StatefulWidget {
     if (kDebugMode) {
       await notificationCreatedCallback?.call();
     }
-    _state!.show(duration: duration);
+    _state.show(duration: duration);
   }
 
   @visibleForTesting
@@ -86,28 +86,23 @@ class InAppNotification extends StatefulWidget {
 
 class _InAppNotificationState extends State<InAppNotification>
     with TickerProviderStateMixin {
-  VoidCallback? _onTap;
-  Timer? _timer;
+  VoidCallback _onTap;
+  Timer _timer;
   double _verticalDragDistance = 0.0;
   double _horizontalDragDistance = 0.0;
 
-  OverlayEntry? _overlay;
-  late CurvedAnimation _animation;
-  Animation? _horizontalAnimation;
+  OverlayEntry _overlay;
+  CurvedAnimation _animation;
+  Animation _horizontalAnimation;
 
   double get _currentVerticalPosition =>
       _animation.value * _notificationSize.height + _verticalDragDistance;
   double get _currentHorizontalPosition =>
       (_horizontalAnimation?.value ?? 0.0) + _horizontalDragDistance;
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: notificationShowingDuration)
-        ..addListener(_updateNotification);
+  AnimationController _controller;
 
-  late final AnimationController _horizontalAnimationController =
-      AnimationController(
-          vsync: this, duration: notificationHorizontalAnimationDuration)
-        ..addListener(_updateNotification);
+  AnimationController _horizontalAnimationController;
 
   Size _notificationSize = Size.zero;
   Completer<Size> _notificationSizeCompleter = Completer();
@@ -116,6 +111,12 @@ class _InAppNotificationState extends State<InAppNotification>
 
   @override
   void initState() {
+    _controller =
+        AnimationController(vsync: this, duration: notificationShowingDuration)
+          ..addListener(_updateNotification);
+    _horizontalAnimationController = AnimationController(
+        vsync: this, duration: notificationHorizontalAnimationDuration)
+      ..addListener(_updateNotification);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.ease);
     super.initState();
   }
@@ -125,9 +126,9 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   Future<void> create({
-    required Widget child,
-    required BuildContext context,
-    VoidCallback? onTap,
+    @required Widget child,
+    @required BuildContext context,
+    VoidCallback onTap,
     Curve curve = Curves.ease,
   }) async {
     await dismiss(animationFrom: _isDismissedByHorizontalSwipe ? 0.0 : 1.0);
@@ -167,7 +168,7 @@ class _InAppNotificationState extends State<InAppNotification>
       },
     );
 
-    Navigator.of(context).overlay?.insert(_overlay!);
+    Navigator.of(context).overlay?.insert(_overlay);
   }
 
   Future<void> show({
@@ -198,7 +199,7 @@ class _InAppNotificationState extends State<InAppNotification>
     if (_onTap == null) return;
 
     dismiss();
-    _onTap!();
+    _onTap();
   }
 
   void _onTapDown() {

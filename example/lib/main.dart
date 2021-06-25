@@ -8,7 +8,7 @@ void main() {
 }
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class App extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({Key key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -84,7 +84,7 @@ class NotificationBody extends StatelessWidget {
   final int count;
 
   NotificationBody({
-    Key? key,
+    Key key,
     this.count = 0,
   }) : super(key: key);
 
@@ -122,7 +122,7 @@ class NotificationBody extends StatelessWidget {
                     'Count: $count',
                     style: Theme.of(context)
                         .textTheme
-                        .headline4!
+                        .headline4
                         .copyWith(color: Colors.white),
                   ),
                 ),

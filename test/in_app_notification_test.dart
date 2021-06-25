@@ -17,7 +17,7 @@ void main() {
 
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    WidgetsBinding.instance!.resetEpoch();
+    WidgetsBinding.instance.resetEpoch();
   });
 
   tearDown(() {
@@ -48,7 +48,7 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(base(key));
 
-        final context = key.currentContext!;
+        final context = key.currentContext;
 
         await InAppNotification.show(
           child: Center(child: Text('foo')),
@@ -71,7 +71,7 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(base(key));
 
-        final context = key.currentContext!;
+        final context = key.currentContext;
 
         await InAppNotification.show(
           child: Center(child: Text('foo')),
@@ -99,7 +99,7 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(base(key));
 
-        final context = key.currentContext!;
+        final context = key.currentContext;
 
         await InAppNotification.show(
           child: Container(
@@ -133,7 +133,7 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(base(key));
 
-        final context = key.currentContext!;
+        final context = key.currentContext;
 
         await InAppNotification.show(
           child: Container(
