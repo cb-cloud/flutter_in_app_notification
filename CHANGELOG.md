@@ -1,3 +1,8 @@
+## 1.0.0
+### FEAT
+- Added horizontal swipe gesture to dismiss notifications.
+- Now, using cache of `InAppNotification`'s state. This makes it possible to decrease overhead on showing notification.
+
 ## 0.3.0
 ### FEAT
 - **BREAKING: Overall, changes API.**

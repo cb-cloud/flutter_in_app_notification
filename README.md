@@ -40,13 +40,8 @@ A Flutter package to show custom in-app notification with any Widgets.
    ```
 
 ## 🗺 Roadmap / Known issue
-- ~~Null-safety migration~~ ✅
-- Implementation for more gesture
-  - Swipe horizontal
-- Performance optimization
-  - ~~Currently `InAppNotification` is recommended to use in `builder` of `MaterialApp`, but it means create instance each time of routing.~~ ✅
-- Animation improvement
-  - ~~So far, we have confirmed that using a Widget with a height higher than the `minAlertHeight ` specified for `InApp` will slightly break the animation.~~ ✅
+See [Discussions](https://github.com/cb-cloud/flutter_in_app_notification/discussions).
+If you have some idea or proposal, feel free to [create new one](https://github.com/cb-cloud/flutter_in_app_notification/discussions/new).
 
 ## 💭 Have a question?
 If you have a question or found issue, feel free to [create an issue](https://github.com/cb-cloud/flutter_in_app_notification/issues/new).
