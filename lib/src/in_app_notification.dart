@@ -145,11 +145,11 @@ class _InAppNotificationState extends State<InAppNotification>
         }
 
         return Positioned(
-          bottom: MediaQuery.of(context).size.height -
+          bottom: _screenSize.height -
               MediaQuery.of(context).viewPadding.top -
               _currentVerticalPosition,
           left: _currentHorizontalPosition,
-          width: MediaQuery.of(context).size.width,
+          width: _screenSize.width,
           child: SizeListenableContainer(
             onSizeChanged: (size) => _notificationSizeCompleter.complete(size),
             child: GestureDetector(
