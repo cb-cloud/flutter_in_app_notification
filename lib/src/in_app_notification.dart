@@ -10,6 +10,8 @@ const notificationShowingDuration = Duration(milliseconds: 350);
 @visibleForTesting
 const notificationHorizontalAnimationDuration = Duration(milliseconds: 350);
 
+final _defaultCurve = CurveTween(curve: Curves.easeOutCubic);
+
 /// A widget for display foreground notification.
 ///
 /// It is mainly intended to wrap whole your app Widgets.
@@ -92,15 +94,28 @@ class _InAppNotificationState extends State<InAppNotification>
   double _horizontalDragDistance = 0.0;
 
   OverlayEntry? _overlay;
-  late CurvedAnimation _animation;
+  Animation? _showAnimation;
   Animation? _horizontalAnimation;
+  Animation? _verticalAnimation;
+
+  bool isShowing = false;
+
+  double get _showingPosition => isShowing ? _notificationSize.height : 0.0;
 
   double get _currentVerticalPosition =>
-      _animation.value * _notificationSize.height + _verticalDragDistance;
+      _showingPosition +
+      (_showAnimation?.value ?? 0.0) +
+      (_verticalAnimation?.value ?? 0.0) +
+      _verticalDragDistance;
   double get _currentHorizontalPosition =>
       (_horizontalAnimation?.value ?? 0.0) + _horizontalDragDistance;
 
   late final AnimationController _controller =
+      AnimationController(vsync: this, duration: notificationShowingDuration)
+        ..addListener(_updateNotification);
+
+  // TODO: 出現アニメーションとインタラクションのアニメーションを分離する でInteractAnimationControllerを使う
+  late final AnimationController _verticalAnimationController =
       AnimationController(vsync: this, duration: notificationShowingDuration)
         ..addListener(_updateNotification);
 
@@ -112,13 +127,6 @@ class _InAppNotificationState extends State<InAppNotification>
   Size _notificationSize = Size.zero;
   Completer<Size> _notificationSizeCompleter = Completer();
   Size _screenSize = Size.zero;
-  bool _isDismissedByHorizontalSwipe = false;
-
-  @override
-  void initState() {
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.ease);
-    super.initState();
-  }
 
   void _updateNotification() {
     _overlay?.markNeedsBuild();
@@ -130,12 +138,11 @@ class _InAppNotificationState extends State<InAppNotification>
     VoidCallback? onTap,
     Curve curve = Curves.ease,
   }) async {
-    await dismiss(animationFrom: _isDismissedByHorizontalSwipe ? 0.0 : 1.0);
+    await dismiss(shouldAnimation: isShowing);
 
     _verticalDragDistance = 0.0;
     _horizontalDragDistance = 0.0;
     _onTap = onTap;
-    _animation = CurvedAnimation(parent: _controller, curve: curve);
     _horizontalAnimation = null;
 
     _overlay = OverlayEntry(
@@ -175,23 +182,32 @@ class _InAppNotificationState extends State<InAppNotification>
   }) async {
     _notificationSize = await _notificationSizeCompleter.future;
 
-    _controller.forward(from: 0.0);
+    _showAnimation = Tween(begin: 0.0, end: _notificationSize.height)
+        .chain(_defaultCurve)
+        .animate(_controller);
+    await _controller.forward(from: 0.0);
+    _showAnimation = null;
+    isShowing = true;
 
     if (duration.inMicroseconds == 0) return;
     _timer = Timer(duration, () => dismiss());
   }
 
-  Future dismiss({double animationFrom = 1.0}) async {
+  Future<void> dismiss({bool shouldAnimation = true}) async {
     _timer?.cancel();
+    isShowing = false;
 
-    if (_controller.status == AnimationStatus.completed) {
-      await _controller.reverse(from: animationFrom);
+    if (shouldAnimation) {
+      _showAnimation = Tween(begin: _notificationSize.height, end: 0.0)
+          .chain(_defaultCurve)
+          .animate(_controller);
+      await _controller.forward(from: 0.0);
+      _showAnimation = null;
     }
 
     _overlay?.remove();
     _overlay = null;
     _notificationSizeCompleter = Completer();
-    _isDismissedByHorizontalSwipe = false;
   }
 
   void _onTapNotification() {
@@ -216,16 +232,37 @@ class _InAppNotificationState extends State<InAppNotification>
         _currentVerticalPosition.abs() / _notificationSize.height;
     final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
     if (velocity <= -1.0) {
-      await dismiss(animationFrom: percentage);
+      _verticalAnimation = Tween(
+        begin: _currentVerticalPosition - _showingPosition,
+        end: -_showingPosition,
+      ).chain(_defaultCurve).animate(_verticalAnimationController);
+      _verticalDragDistance = 0.0;
+
+      await _verticalAnimationController.forward(from: 0.0);
+      _verticalAnimation = null;
+      await dismiss(shouldAnimation: false);
       return;
     }
 
     if (percentage >= 0.5) {
       if (_verticalDragDistance == 0.0) return;
+      _verticalAnimation = Tween(begin: _verticalDragDistance, end: 0.0)
+          .chain(_defaultCurve)
+          .animate(_verticalAnimationController);
+
       _verticalDragDistance = 0.0;
-      _controller.forward(from: percentage);
+      await _verticalAnimationController.forward(from: 0.0);
+      _verticalAnimation = null;
     } else {
-      dismiss(animationFrom: percentage);
+      _verticalAnimation = Tween(
+        begin: _currentVerticalPosition - _showingPosition,
+        end: -_showingPosition,
+      ).chain(_defaultCurve).animate(_verticalAnimationController);
+
+      _verticalDragDistance = 0.0;
+      await _verticalAnimationController.forward(from: 0.0);
+      _verticalAnimation = null;
+      await dismiss(shouldAnimation: false);
     }
   }
 
@@ -242,21 +279,23 @@ class _InAppNotificationState extends State<InAppNotification>
       final endValue = _horizontalDragDistance.sign * _screenSize.width;
       _horizontalAnimation =
           Tween(begin: _horizontalDragDistance, end: endValue)
-              .chain(CurveTween(curve: Curves.easeOutCubic))
+              .chain(_defaultCurve)
               .animate(_horizontalAnimationController);
       _horizontalDragDistance = 0.0;
 
-      _isDismissedByHorizontalSwipe = true;
       await _horizontalAnimationController.forward(from: 0.0);
+      _horizontalAnimation = null;
+      dismiss(shouldAnimation: false);
     } else {
       final endValue = 0.0;
       _horizontalAnimation =
           Tween(begin: _horizontalDragDistance, end: endValue)
-              .chain(CurveTween(curve: Curves.easeOutCubic))
+              .chain(_defaultCurve)
               .animate(_horizontalAnimationController);
       _horizontalDragDistance = 0.0;
 
       await _horizontalAnimationController.forward(from: 0.0);
+      _horizontalAnimation = null;
     }
   }
 
