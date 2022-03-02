@@ -1,3 +1,15 @@
+## 1.0.2
+### FIX
+- Fixed a bug that `curve` option in `InAppNotification.show()` didn't affect.
+
+### FEAT
+- Added `dismissCurve` option in `InAppNotification.show()`.
+### CHORE
+- Refactored a whole of code.
+  - More readable logic around showing and dismissing notification.
+  - Isolated `AnimationController` for interactions from one for showing.
+- Expanded example app to change sample notification size.
+
 ## 1.0.1
 ### FIX
 - Fixed a bug that the notification doesn't apppear when swiping previous one.
