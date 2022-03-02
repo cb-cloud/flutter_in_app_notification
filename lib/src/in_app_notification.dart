@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_notification/src/interact_animation_controller.dart';
 import 'package:in_app_notification/src/size_listenable_container.dart';
 
 @visibleForTesting
@@ -90,23 +91,16 @@ class _InAppNotificationState extends State<InAppNotification>
     with TickerProviderStateMixin {
   VoidCallback? _onTap;
   Timer? _timer;
-  double _verticalDragDistance = 0.0;
   double _horizontalDragDistance = 0.0;
 
   OverlayEntry? _overlay;
-  Animation? _showAnimation;
+  Animation<double>? _showAnimation;
   Animation? _horizontalAnimation;
-  Animation? _verticalAnimation;
-
-  bool isShowing = false;
-
-  double get _showingPosition => isShowing ? _notificationSize.height : 0.0;
 
   double get _currentVerticalPosition =>
-      _showingPosition +
       (_showAnimation?.value ?? 0.0) +
       (_verticalAnimation?.value ?? 0.0) +
-      _verticalDragDistance;
+      _verticalAnimationController.dragDistance;
   double get _currentHorizontalPosition =>
       (_horizontalAnimation?.value ?? 0.0) + _horizontalDragDistance;
 
@@ -114,10 +108,12 @@ class _InAppNotificationState extends State<InAppNotification>
       AnimationController(vsync: this, duration: notificationShowingDuration)
         ..addListener(_updateNotification);
 
-  // TODO: 出現アニメーションとインタラクションのアニメーションを分離する でInteractAnimationControllerを使う
-  late final AnimationController _verticalAnimationController =
-      AnimationController(vsync: this, duration: notificationShowingDuration)
+  late final VerticalInteractAnimationController _verticalAnimationController =
+      VerticalInteractAnimationController(
+          vsync: this, duration: notificationShowingDuration)
         ..addListener(_updateNotification);
+  Animation<double>? get _verticalAnimation =>
+      _verticalAnimationController.currentAnimation;
 
   late final AnimationController _horizontalAnimationController =
       AnimationController(
@@ -138,9 +134,9 @@ class _InAppNotificationState extends State<InAppNotification>
     VoidCallback? onTap,
     Curve curve = Curves.ease,
   }) async {
-    await dismiss(shouldAnimation: isShowing);
+    await dismiss(shouldAnimation: !_controller.isDismissed);
 
-    _verticalDragDistance = 0.0;
+    _verticalAnimationController.dragDistance = 0.0;
     _horizontalDragDistance = 0.0;
     _onTap = onTap;
     _horizontalAnimation = null;
@@ -180,14 +176,18 @@ class _InAppNotificationState extends State<InAppNotification>
   Future<void> show({
     Duration duration = const Duration(seconds: 10),
   }) async {
-    _notificationSize = await _notificationSizeCompleter.future;
+    final size = await _notificationSizeCompleter.future;
+    final isSizeChanged = _notificationSize != size;
+    _notificationSize = size;
+    _verticalAnimationController.notificationHeight = _notificationSize.height;
 
-    _showAnimation = Tween(begin: 0.0, end: _notificationSize.height)
-        .chain(_defaultCurve)
-        .animate(_controller);
+    if (isSizeChanged) {
+      _showAnimation = Tween(begin: 0.0, end: _notificationSize.height)
+          .chain(_defaultCurve)
+          .animate(_controller);
+    }
+
     await _controller.forward(from: 0.0);
-    _showAnimation = null;
-    isShowing = true;
 
     if (duration.inMicroseconds == 0) return;
     _timer = Timer(duration, () => dismiss());
@@ -195,15 +195,8 @@ class _InAppNotificationState extends State<InAppNotification>
 
   Future<void> dismiss({bool shouldAnimation = true}) async {
     _timer?.cancel();
-    isShowing = false;
 
-    if (shouldAnimation) {
-      _showAnimation = Tween(begin: _notificationSize.height, end: 0.0)
-          .chain(_defaultCurve)
-          .animate(_controller);
-      await _controller.forward(from: 0.0);
-      _showAnimation = null;
-    }
+    await _controller.reverse(from: shouldAnimation ? 1.0 : 0.0);
 
     _overlay?.remove();
     _overlay = null;
@@ -222,8 +215,9 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
-    _verticalDragDistance = (_verticalDragDistance + details.delta.dy)
-        .clamp(-_notificationSize.height, 0.0);
+    _verticalAnimationController.dragDistance =
+        (_verticalAnimationController.dragDistance + details.delta.dy)
+            .clamp(-_notificationSize.height, 0.0);
     _updateNotification();
   }
 
@@ -232,36 +226,18 @@ class _InAppNotificationState extends State<InAppNotification>
         _currentVerticalPosition.abs() / _notificationSize.height;
     final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
     if (velocity <= -1.0) {
-      _verticalAnimation = Tween(
-        begin: _currentVerticalPosition - _showingPosition,
-        end: -_showingPosition,
-      ).chain(_defaultCurve).animate(_verticalAnimationController);
-      _verticalDragDistance = 0.0;
-
-      await _verticalAnimationController.forward(from: 0.0);
-      _verticalAnimation = null;
+      await _verticalAnimationController.dismiss(
+          currentPosition: _currentVerticalPosition);
       await dismiss(shouldAnimation: false);
       return;
     }
 
     if (percentage >= 0.5) {
-      if (_verticalDragDistance == 0.0) return;
-      _verticalAnimation = Tween(begin: _verticalDragDistance, end: 0.0)
-          .chain(_defaultCurve)
-          .animate(_verticalAnimationController);
-
-      _verticalDragDistance = 0.0;
-      await _verticalAnimationController.forward(from: 0.0);
-      _verticalAnimation = null;
+      if (_verticalAnimationController.dragDistance == 0.0) return;
+      await _verticalAnimationController.stay();
     } else {
-      _verticalAnimation = Tween(
-        begin: _currentVerticalPosition - _showingPosition,
-        end: -_showingPosition,
-      ).chain(_defaultCurve).animate(_verticalAnimationController);
-
-      _verticalDragDistance = 0.0;
-      await _verticalAnimationController.forward(from: 0.0);
-      _verticalAnimation = null;
+      await _verticalAnimationController.dismiss(
+          currentPosition: _currentVerticalPosition);
       await dismiss(shouldAnimation: false);
     }
   }
