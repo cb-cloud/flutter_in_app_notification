@@ -59,7 +59,8 @@ class InAppNotification extends StatefulWidget {
     required BuildContext context,
     VoidCallback? onTap,
     Duration duration = const Duration(seconds: 10),
-    Curve curve = Curves.ease,
+    Curve curve = Curves.easeOutCubic,
+    Curve dismissCurve = Curves.easeOutCubic,
     @visibleForTesting FutureOr Function()? notificationCreatedCallback,
   }) async {
     _state ??= context.findAncestorStateOfType<_InAppNotificationState>();
@@ -70,12 +71,11 @@ class InAppNotification extends StatefulWidget {
       child: child,
       context: context,
       onTap: onTap,
-      curve: curve,
     );
     if (kDebugMode) {
       await notificationCreatedCallback?.call();
     }
-    _state!.show(duration: duration);
+    _state!.show(duration: duration, curve: curve, dismissCurve: dismissCurve);
   }
 
   @visibleForTesting
@@ -132,7 +132,6 @@ class _InAppNotificationState extends State<InAppNotification>
     required Widget child,
     required BuildContext context,
     VoidCallback? onTap,
-    Curve curve = Curves.ease,
   }) async {
     await dismiss(shouldAnimation: !_controller.isDismissed);
 
@@ -175,7 +174,9 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   Future<void> show({
-    Duration duration = const Duration(seconds: 10),
+    required Duration duration,
+    required Curve curve,
+    required Curve dismissCurve,
   }) async {
     final size = await _notificationSizeCompleter.future;
     final isSizeChanged = _notificationSize != size;
@@ -183,9 +184,16 @@ class _InAppNotificationState extends State<InAppNotification>
     _verticalAnimationController.notificationHeight = _notificationSize.height;
 
     if (isSizeChanged) {
-      _showAnimation = Tween(begin: 0.0, end: _notificationSize.height)
-          .chain(_defaultCurve)
-          .animate(_controller);
+      _showAnimation = Tween(
+        begin: 0.0,
+        end: _notificationSize.height,
+      ).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: curve,
+          reverseCurve: dismissCurve,
+        ),
+      );
     }
 
     await _controller.forward(from: 0.0);
