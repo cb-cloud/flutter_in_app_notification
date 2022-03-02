@@ -11,8 +11,6 @@ const notificationShowingDuration = Duration(milliseconds: 350);
 @visibleForTesting
 const notificationHorizontalAnimationDuration = Duration(milliseconds: 350);
 
-final _defaultCurve = CurveTween(curve: Curves.easeOutCubic);
-
 /// A widget for display foreground notification.
 ///
 /// It is mainly intended to wrap whole your app Widgets.
@@ -91,18 +89,17 @@ class _InAppNotificationState extends State<InAppNotification>
     with TickerProviderStateMixin {
   VoidCallback? _onTap;
   Timer? _timer;
-  double _horizontalDragDistance = 0.0;
 
   OverlayEntry? _overlay;
   Animation<double>? _showAnimation;
-  Animation? _horizontalAnimation;
 
   double get _currentVerticalPosition =>
       (_showAnimation?.value ?? 0.0) +
       (_verticalAnimation?.value ?? 0.0) +
       _verticalAnimationController.dragDistance;
   double get _currentHorizontalPosition =>
-      (_horizontalAnimation?.value ?? 0.0) + _horizontalDragDistance;
+      (_horizontalAnimation?.value ?? 0.0) +
+      _horizontalAnimationController.dragDistance;
 
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: notificationShowingDuration)
@@ -115,10 +112,12 @@ class _InAppNotificationState extends State<InAppNotification>
   Animation<double>? get _verticalAnimation =>
       _verticalAnimationController.currentAnimation;
 
-  late final AnimationController _horizontalAnimationController =
-      AnimationController(
+  late final HorizontalInteractAnimationController
+      _horizontalAnimationController = HorizontalInteractAnimationController(
           vsync: this, duration: notificationHorizontalAnimationDuration)
         ..addListener(_updateNotification);
+  Animation<double>? get _horizontalAnimation =>
+      _horizontalAnimationController.currentAnimation;
 
   Size _notificationSize = Size.zero;
   Completer<Size> _notificationSizeCompleter = Completer();
@@ -136,14 +135,14 @@ class _InAppNotificationState extends State<InAppNotification>
     await dismiss(shouldAnimation: !_controller.isDismissed);
 
     _verticalAnimationController.dragDistance = 0.0;
-    _horizontalDragDistance = 0.0;
+    _horizontalAnimationController.dragDistance = 0.0;
     _onTap = onTap;
-    _horizontalAnimation = null;
 
     _overlay = OverlayEntry(
       builder: (context) {
         if (_screenSize == Size.zero) {
           _screenSize = MediaQuery.of(context).size;
+          _horizontalAnimationController.screenWidth = _screenSize.width;
         }
 
         return Positioned(
@@ -252,35 +251,20 @@ class _InAppNotificationState extends State<InAppNotification>
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    _horizontalDragDistance += details.delta.dx;
+    _horizontalAnimationController.dragDistance += details.delta.dx;
     _updateNotification();
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) async {
     final velocity = details.velocity.pixelsPerSecond.dx / _screenSize.width;
-    final position = _horizontalDragDistance / _screenSize.width;
+    final position =
+        _horizontalAnimationController.dragDistance / _screenSize.width;
 
     if (velocity.abs() >= 1.0 || position.abs() >= 0.2) {
-      final endValue = _horizontalDragDistance.sign * _screenSize.width;
-      _horizontalAnimation =
-          Tween(begin: _horizontalDragDistance, end: endValue)
-              .chain(_defaultCurve)
-              .animate(_horizontalAnimationController);
-      _horizontalDragDistance = 0.0;
-
-      await _horizontalAnimationController.forward(from: 0.0);
-      _horizontalAnimation = null;
+      await _horizontalAnimationController.dismiss();
       dismiss(shouldAnimation: false);
     } else {
-      final endValue = 0.0;
-      _horizontalAnimation =
-          Tween(begin: _horizontalDragDistance, end: endValue)
-              .chain(_defaultCurve)
-              .animate(_horizontalAnimationController);
-      _horizontalDragDistance = 0.0;
-
-      await _horizontalAnimationController.forward(from: 0.0);
-      _horizontalAnimation = null;
+      await _horizontalAnimationController.stay();
     }
   }
 

@@ -10,7 +10,7 @@ abstract class InteractnimationController {
   Future<void> stay();
 
   /// Animate to dismiss the notification.
-  Future<void> dismiss({required double currentPosition});
+  Future<void> dismiss();
 }
 
 class VerticalInteractAnimationController extends AnimationController
@@ -31,7 +31,7 @@ class VerticalInteractAnimationController extends AnimationController
   }) : super(vsync: vsync, duration: duration);
 
   @override
-  Future<void> dismiss({required double currentPosition}) async {
+  Future<void> dismiss({double currentPosition = 0.0}) async {
     currentAnimation = Tween(
       begin: currentPosition - _notificationHeight,
       end: -_notificationHeight,
@@ -48,6 +48,46 @@ class VerticalInteractAnimationController extends AnimationController
         Tween(begin: dragDistance, end: 0.0).chain(_defaultCurve).animate(this);
 
     dragDistance = 0.0;
+    await forward(from: 0.0);
+    currentAnimation = null;
+  }
+}
+
+class HorizontalInteractAnimationController extends AnimationController
+    implements InteractnimationController {
+  @override
+  Animation<double>? currentAnimation;
+
+  @override
+  double dragDistance = 0.0;
+
+  double _screenWidth = 0.0;
+
+  set screenWidth(double value) => _screenWidth = value;
+
+  HorizontalInteractAnimationController({
+    required TickerProvider vsync,
+    required Duration duration,
+  }) : super(vsync: vsync, duration: duration);
+
+  @override
+  Future<void> dismiss() async {
+    final endValue = dragDistance.sign * _screenWidth;
+    currentAnimation = Tween(begin: dragDistance, end: endValue)
+        .chain(_defaultCurve)
+        .animate(this);
+    dragDistance = 0.0;
+
+    await forward(from: 0.0);
+    currentAnimation = null;
+  }
+
+  @override
+  Future<void> stay() async {
+    currentAnimation =
+        Tween(begin: dragDistance, end: 0.0).chain(_defaultCurve).animate(this);
+    dragDistance = 0.0;
+
     await forward(from: 0.0);
     currentAnimation = null;
   }
