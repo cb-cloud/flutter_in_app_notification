@@ -65,11 +65,7 @@ class InAppNotification extends StatefulWidget {
 
     assert(_state != null);
 
-    await _state!.create(
-      child: child,
-      context: context,
-      onTap: onTap,
-    );
+    await _state!.create(child: child, context: context, onTap: onTap);
     if (kDebugMode) {
       await notificationCreatedCallback?.call();
     }
@@ -101,21 +97,23 @@ class _InAppNotificationState extends State<InAppNotification>
       (_horizontalAnimation?.value ?? 0.0) +
       _horizontalAnimationController.dragDistance;
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: notificationShowingDuration)
-        ..addListener(_updateNotification);
+  late final _showController = AnimationController(
+    vsync: this,
+    duration: notificationShowingDuration,
+  )..addListener(_updateNotification);
 
-  late final VerticalInteractAnimationController _verticalAnimationController =
-      VerticalInteractAnimationController(
-          vsync: this, duration: notificationShowingDuration)
-        ..addListener(_updateNotification);
+  late final _verticalAnimationController = VerticalInteractAnimationController(
+    vsync: this,
+    duration: notificationShowingDuration,
+  )..addListener(_updateNotification);
   Animation<double>? get _verticalAnimation =>
       _verticalAnimationController.currentAnimation;
 
-  late final HorizontalInteractAnimationController
-      _horizontalAnimationController = HorizontalInteractAnimationController(
-          vsync: this, duration: notificationHorizontalAnimationDuration)
-        ..addListener(_updateNotification);
+  late final _horizontalAnimationController =
+      HorizontalInteractAnimationController(
+    vsync: this,
+    duration: notificationHorizontalAnimationDuration,
+  )..addListener(_updateNotification);
   Animation<double>? get _horizontalAnimation =>
       _horizontalAnimationController.currentAnimation;
 
@@ -132,7 +130,7 @@ class _InAppNotificationState extends State<InAppNotification>
     required BuildContext context,
     VoidCallback? onTap,
   }) async {
-    await dismiss(shouldAnimation: !_controller.isDismissed);
+    await dismiss(shouldAnimation: !_showController.isDismissed);
 
     _verticalAnimationController.dragDistance = 0.0;
     _horizontalAnimationController.dragDistance = 0.0;
@@ -188,14 +186,14 @@ class _InAppNotificationState extends State<InAppNotification>
         end: _notificationSize.height,
       ).animate(
         CurvedAnimation(
-          parent: _controller,
+          parent: _showController,
           curve: curve,
           reverseCurve: dismissCurve,
         ),
       );
     }
 
-    await _controller.forward(from: 0.0);
+    await _showController.forward(from: 0.0);
 
     if (duration.inMicroseconds == 0) return;
     _timer = Timer(duration, () => dismiss());
@@ -204,7 +202,7 @@ class _InAppNotificationState extends State<InAppNotification>
   Future<void> dismiss({bool shouldAnimation = true}) async {
     _timer?.cancel();
 
-    await _controller.reverse(from: shouldAnimation ? 1.0 : 0.0);
+    await _showController.reverse(from: shouldAnimation ? 1.0 : 0.0);
 
     _overlay?.remove();
     _overlay = null;
@@ -275,7 +273,8 @@ class _InAppNotificationState extends State<InAppNotification>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _showController.dispose();
+    _verticalAnimationController.dispose();
     _horizontalAnimationController.dispose();
     super.dispose();
   }
