@@ -72,6 +72,13 @@ class InAppNotification extends StatefulWidget {
     _state!.show(duration: duration, curve: curve, dismissCurve: dismissCurve);
   }
 
+  static FutureOr<void> dismiss() async {
+    final state = _state;
+    if (state == null) return;
+
+    await state.dismissProgramatically();
+  }
+
   @visibleForTesting
   static void clearStateCache() {
     _state = null;
@@ -199,10 +206,10 @@ class _InAppNotificationState extends State<InAppNotification>
     _timer = Timer(duration, () => dismiss());
   }
 
-  Future<void> dismiss({bool shouldAnimation = true}) async {
+  Future<void> dismiss({bool shouldAnimation = true, double from = 1.0}) async {
     _timer?.cancel();
 
-    await _showController.reverse(from: shouldAnimation ? 1.0 : 0.0);
+    await _showController.reverse(from: shouldAnimation ? from : 0.0);
 
     _overlay?.remove();
     _overlay = null;
@@ -264,6 +271,13 @@ class _InAppNotificationState extends State<InAppNotification>
     } else {
       await _horizontalAnimationController.stay();
     }
+  }
+
+  Future<void> dismissProgramatically() async {
+    await dismiss(
+      shouldAnimation: !_showController.isDismissed,
+      from: _showController.value,
+    );
   }
 
   @override

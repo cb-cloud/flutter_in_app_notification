@@ -159,4 +159,35 @@ void main() {
       });
     },
   );
+
+  testWidgets(
+    'InAppNotification should dismiss on call `dismiss()` method.',
+    (tester) async {
+      await tester.runAsync(() async {
+        final key = GlobalKey();
+        await tester.pumpWidget(base(key));
+
+        final context = key.currentContext!;
+
+        await InAppNotification.show(
+          child: Container(
+            height: 300,
+            color: Colors.green,
+            child: Text('test'),
+          ),
+          context: context,
+          onTap: () {},
+          duration: Duration.zero,
+          notificationCreatedCallback: () async => await tester.pumpAndSettle(),
+        );
+
+        expect(find.text('test'), findsOneWidget);
+
+        await InAppNotification.dismiss();
+        await tester.pumpAndSettle();
+
+        expect(find.text('test'), findsNothing);
+      });
+    },
+  );
 }
