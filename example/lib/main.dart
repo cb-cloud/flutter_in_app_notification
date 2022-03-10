@@ -84,6 +84,11 @@ class _HomePageState extends State<HomePage> {
                 );
               },
               child: Text('Show Notification'),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => InAppNotification.dismiss(),
+              child: Text('Dismiss Notification'),
             )
           ],
         ),
