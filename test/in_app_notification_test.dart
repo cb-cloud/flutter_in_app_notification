@@ -20,10 +20,6 @@ void main() {
     WidgetsBinding.instance!.resetEpoch();
   });
 
-  tearDown(() {
-    InAppNotification.clearStateCache();
-  });
-
   testWidgets('SizeListenableContainer test.', (tester) async {
     await tester.runAsync(() async {
       var widgetSize = Size.zero;
@@ -183,7 +179,7 @@ void main() {
 
         expect(find.text('test'), findsOneWidget);
 
-        await InAppNotification.dismiss();
+        await InAppNotification.dismiss(context: context);
         await tester.pumpAndSettle();
 
         expect(find.text('test'), findsNothing);

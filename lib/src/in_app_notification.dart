@@ -28,7 +28,7 @@ const notificationHorizontalAnimationDuration = Duration(milliseconds: 350);
 /// );
 /// ```
 /// {@end-tool}
-class InAppNotification extends StatefulWidget {
+class InAppNotification extends StatelessWidget {
   /// Creates an in-app notification system.
   const InAppNotification({
     Key? key,
@@ -36,8 +36,6 @@ class InAppNotification extends StatefulWidget {
   }) : super(key: key);
 
   final Widget child;
-
-  static _InAppNotificationState? _state;
 
   /// Shows specified Widget as notification.
   ///
@@ -61,103 +59,127 @@ class InAppNotification extends StatefulWidget {
     Curve dismissCurve = Curves.easeOutCubic,
     @visibleForTesting FutureOr Function()? notificationCreatedCallback,
   }) async {
-    _state ??= context.findAncestorStateOfType<_InAppNotificationState>();
+    final controller = _NotificationController.of(context);
 
-    assert(_state != null);
+    assert(controller != null, 'Not found InAppNotification controller.');
 
-    await _state!.create(child: child, context: context, onTap: onTap);
+    await controller!.create(child: child, context: context, onTap: onTap);
     if (kDebugMode) {
       await notificationCreatedCallback?.call();
     }
-    _state!.show(duration: duration, curve: curve, dismissCurve: dismissCurve);
+    controller.show(
+        duration: duration, curve: curve, dismissCurve: dismissCurve);
   }
 
-  static FutureOr<void> dismiss() async {
-    final state = _state;
-    if (state == null) return;
+  static FutureOr<void> dismiss({required BuildContext context}) async {
+    final controller = _NotificationController.of(context);
 
-    await state.dismissProgramatically();
-  }
+    if (controller == null) return;
 
-  @visibleForTesting
-  static void clearStateCache() {
-    _state = null;
+    await controller.dismissProgramatically();
   }
 
   @override
-  _InAppNotificationState createState() => _InAppNotificationState();
+  Widget build(BuildContext context) {
+    return _VsyncProvider(child: child);
+  }
 }
 
-class _InAppNotificationState extends State<InAppNotification>
+class _VsyncProvider extends StatefulWidget {
+  const _VsyncProvider({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  State<_VsyncProvider> createState() => __VsyncProviderState();
+}
+
+class __VsyncProviderState extends State<_VsyncProvider>
     with TickerProviderStateMixin {
-  VoidCallback? _onTap;
-  Timer? _timer;
-
-  OverlayEntry? _overlay;
-  Animation<double>? _showAnimation;
-
-  double get _currentVerticalPosition =>
-      (_showAnimation?.value ?? 0.0) +
-      (_verticalAnimation?.value ?? 0.0) +
-      _verticalAnimationController.dragDistance;
-  double get _currentHorizontalPosition =>
-      (_horizontalAnimation?.value ?? 0.0) +
-      _horizontalAnimationController.dragDistance;
-
   late final _showController = AnimationController(
     vsync: this,
     duration: notificationShowingDuration,
-  )..addListener(_updateNotification);
+  );
 
   late final _verticalAnimationController = VerticalInteractAnimationController(
     vsync: this,
     duration: notificationShowingDuration,
-  )..addListener(_updateNotification);
-  Animation<double>? get _verticalAnimation =>
-      _verticalAnimationController.currentAnimation;
+  );
 
   late final _horizontalAnimationController =
       HorizontalInteractAnimationController(
     vsync: this,
     duration: notificationHorizontalAnimationDuration,
-  )..addListener(_updateNotification);
-  Animation<double>? get _horizontalAnimation =>
-      _horizontalAnimationController.currentAnimation;
+  );
 
-  Size _notificationSize = Size.zero;
-  Completer<Size> _notificationSizeCompleter = Completer();
-  Size _screenSize = Size.zero;
-
-  void _updateNotification() {
-    _overlay?.markNeedsBuild();
+  @override
+  Widget build(BuildContext context) {
+    return _NotificationController(
+      state: _NotificationState(
+        showController: _showController,
+        verticalAnimationController: _verticalAnimationController,
+        horizontalAnimationController: _horizontalAnimationController,
+      ),
+      child: widget.child,
+    );
   }
+
+  @override
+  void dispose() {
+    _showController.dispose();
+    _verticalAnimationController.dispose();
+    _horizontalAnimationController.dispose();
+    super.dispose();
+  }
+}
+
+class _NotificationController extends InheritedWidget {
+  const _NotificationController({
+    Key? key,
+    required Widget child,
+    required this.state,
+  }) : super(key: key, child: child);
+
+  final _NotificationState state;
+
+  static _NotificationController? of(BuildContext context) => context
+      .getElementForInheritedWidgetOfExactType<_NotificationController>()
+      ?.widget as _NotificationController;
+
+  @override
+  bool updateShouldNotify(covariant _NotificationController oldWidget) => false;
 
   Future<void> create({
     required Widget child,
     required BuildContext context,
     VoidCallback? onTap,
   }) async {
-    await dismiss(shouldAnimation: !_showController.isDismissed);
+    await dismiss(shouldAnimation: !state.showController.isDismissed);
 
-    _verticalAnimationController.dragDistance = 0.0;
-    _horizontalAnimationController.dragDistance = 0.0;
-    _onTap = onTap;
+    state.verticalAnimationController.dragDistance = 0.0;
+    state.horizontalAnimationController.dragDistance = 0.0;
+    state.onTap = onTap;
 
-    _overlay = OverlayEntry(
+    state.overlay = OverlayEntry(
       builder: (context) {
-        if (_screenSize == Size.zero) {
-          _screenSize = MediaQuery.of(context).size;
-          _horizontalAnimationController.screenWidth = _screenSize.width;
+        if (state.screenSize == Size.zero) {
+          state.screenSize = MediaQuery.of(context).size;
+          state.horizontalAnimationController.screenWidth =
+              state.screenSize.width;
         }
 
         return Positioned(
-          bottom: _screenSize.height - _currentVerticalPosition,
-          left: _currentHorizontalPosition,
-          width: _screenSize.width,
+          bottom: state.screenSize.height - state.currentVerticalPosition,
+          left: state.currentHorizontalPosition,
+          width: state.screenSize.width,
           child: SizeListenableContainer(
             onSizeChanged: (size) {
               final topPadding = MediaQuery.of(context).viewPadding.top;
-              _notificationSizeCompleter.complete(size + Offset(0, topPadding));
+              state.notificationSizeCompleter
+                  .complete(size + Offset(0, topPadding));
             },
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -174,7 +196,7 @@ class _InAppNotificationState extends State<InAppNotification>
       },
     );
 
-    Navigator.of(context).overlay?.insert(_overlay!);
+    Navigator.of(context).overlay?.insert(state.overlay!);
   }
 
   Future<void> show({
@@ -182,114 +204,147 @@ class _InAppNotificationState extends State<InAppNotification>
     required Curve curve,
     required Curve dismissCurve,
   }) async {
-    final size = await _notificationSizeCompleter.future;
-    final isSizeChanged = _notificationSize != size;
-    _notificationSize = size;
-    _verticalAnimationController.notificationHeight = _notificationSize.height;
+    final size = await state.notificationSizeCompleter.future;
+    final isSizeChanged = state.notificationSize != size;
+    state.notificationSize = size;
+    state.verticalAnimationController.notificationHeight =
+        state.notificationSize.height;
 
     if (isSizeChanged) {
-      _showAnimation = Tween(
+      state.showAnimation = Tween(
         begin: 0.0,
-        end: _notificationSize.height,
+        end: state.notificationSize.height,
       ).animate(
         CurvedAnimation(
-          parent: _showController,
+          parent: state.showController,
           curve: curve,
           reverseCurve: dismissCurve,
         ),
       );
     }
 
-    await _showController.forward(from: 0.0);
+    await state.showController.forward(from: 0.0);
 
     if (duration.inMicroseconds == 0) return;
-    _timer = Timer(duration, () => dismiss());
+    state.timer = Timer(duration, () => dismiss());
   }
 
   Future<void> dismiss({bool shouldAnimation = true, double from = 1.0}) async {
-    _timer?.cancel();
+    state.timer?.cancel();
 
-    await _showController.reverse(from: shouldAnimation ? from : 0.0);
+    await state.showController.reverse(from: shouldAnimation ? from : 0.0);
 
-    _overlay?.remove();
-    _overlay = null;
-    _notificationSizeCompleter = Completer();
+    state.overlay?.remove();
+    state.overlay = null;
+    state.notificationSizeCompleter = Completer();
   }
 
   void _onTapNotification() {
-    if (_onTap == null) return;
+    if (state.onTap == null) return;
 
     dismiss();
-    _onTap!();
+    state.onTap!();
   }
 
   void _onTapDown() {
-    _timer?.cancel();
+    state.timer?.cancel();
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
-    _verticalAnimationController.dragDistance =
-        (_verticalAnimationController.dragDistance + details.delta.dy)
-            .clamp(-_notificationSize.height, 0.0);
-    _updateNotification();
+    state.verticalAnimationController.dragDistance =
+        (state.verticalAnimationController.dragDistance + details.delta.dy)
+            .clamp(-state.notificationSize.height, 0.0);
+    state.updateNotification();
   }
 
   void _onVerticalDragEnd(DragEndDetails details) async {
     final percentage =
-        _currentVerticalPosition.abs() / _notificationSize.height;
-    final velocity = details.velocity.pixelsPerSecond.dy * _screenSize.height;
+        state.currentVerticalPosition.abs() / state.notificationSize.height;
+    final velocity =
+        details.velocity.pixelsPerSecond.dy * state.screenSize.height;
     if (velocity <= -1.0) {
-      await _verticalAnimationController.dismiss(
-          currentPosition: _currentVerticalPosition);
+      await state.verticalAnimationController
+          .dismiss(currentPosition: state.currentVerticalPosition);
       await dismiss(shouldAnimation: false);
       return;
     }
 
     if (percentage >= 0.5) {
-      if (_verticalAnimationController.dragDistance == 0.0) return;
-      await _verticalAnimationController.stay();
+      if (state.verticalAnimationController.dragDistance == 0.0) return;
+      await state.verticalAnimationController.stay();
     } else {
-      await _verticalAnimationController.dismiss(
-          currentPosition: _currentVerticalPosition);
+      await state.verticalAnimationController
+          .dismiss(currentPosition: state.currentVerticalPosition);
       await dismiss(shouldAnimation: false);
     }
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    _horizontalAnimationController.dragDistance += details.delta.dx;
-    _updateNotification();
+    state.horizontalAnimationController.dragDistance += details.delta.dx;
+    state.updateNotification();
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) async {
-    final velocity = details.velocity.pixelsPerSecond.dx / _screenSize.width;
-    final position =
-        _horizontalAnimationController.dragDistance / _screenSize.width;
+    final velocity =
+        details.velocity.pixelsPerSecond.dx / state.screenSize.width;
+    final position = state.horizontalAnimationController.dragDistance /
+        state.screenSize.width;
 
     if (velocity.abs() >= 1.0 || position.abs() >= 0.2) {
-      await _horizontalAnimationController.dismiss();
+      await state.horizontalAnimationController.dismiss();
       dismiss(shouldAnimation: false);
     } else {
-      await _horizontalAnimationController.stay();
+      await state.horizontalAnimationController.stay();
     }
   }
 
   Future<void> dismissProgramatically() async {
     await dismiss(
-      shouldAnimation: !_showController.isDismissed,
-      from: _showController.value,
+      shouldAnimation: !state.showController.isDismissed,
+      from: state.showController.value,
     );
   }
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
+class _NotificationState {
+  VoidCallback? onTap;
+  Timer? timer;
+
+  OverlayEntry? overlay;
+  Animation<double>? showAnimation;
+
+  double get currentVerticalPosition =>
+      (showAnimation?.value ?? 0.0) +
+      (_verticalAnimation?.value ?? 0.0) +
+      verticalAnimationController.dragDistance;
+  double get currentHorizontalPosition =>
+      (_horizontalAnimation?.value ?? 0.0) +
+      horizontalAnimationController.dragDistance;
+
+  final AnimationController showController;
+  final VerticalInteractAnimationController verticalAnimationController;
+  final HorizontalInteractAnimationController horizontalAnimationController;
+
+  Animation<double>? get _verticalAnimation =>
+      verticalAnimationController.currentAnimation;
+  Animation<double>? get _horizontalAnimation =>
+      horizontalAnimationController.currentAnimation;
+
+  Size notificationSize = Size.zero;
+  Completer<Size> notificationSizeCompleter = Completer();
+  Size screenSize = Size.zero;
+
+  _NotificationState({
+    required this.showController,
+    required this.verticalAnimationController,
+    required this.horizontalAnimationController,
+  }) {
+    showController.addListener(updateNotification);
+    verticalAnimationController.addListener(updateNotification);
+    horizontalAnimationController.addListener(updateNotification);
   }
 
-  @override
-  void dispose() {
-    _showController.dispose();
-    _verticalAnimationController.dispose();
-    _horizontalAnimationController.dispose();
-    super.dispose();
+  void updateNotification() {
+    overlay?.markNeedsBuild();
   }
 }
