@@ -1,3 +1,13 @@
+## 1.1.0
+### FEAT
+- Added `InAppNotification.dismiss()` method that hides notification programmatically.
+  - from #14 .
+
+### CHORE
+- Refactored again.
+  - Get rid of `StatefulWidget`, using `findAncestorStateOfType()` method.
+    - This is expensive when using `BuildContext` that obtained from deep hierarchy of Widget tree, so it replaced with `getElementForInheritedWidgetOfExactType()` method on `InheritedWidget`.
+
 ## 1.0.2
 ### FIX
 - Fixed a bug that `curve` option in `InAppNotification.show()` didn't affect.
