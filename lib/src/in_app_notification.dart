@@ -42,7 +42,7 @@ class InAppNotification extends StatelessWidget {
   /// Shows specified Widget as notification.
   ///
   /// [child] is required, this will be displayed as notification body.
-  /// [context] is required, this is used to get Navigator instance.
+  /// [context] is required, this is used to get internally used notification controller class which is subclass of `InheritedWidget`.
   ///
   /// Showing and hiding notifications is managed by animation,
   /// and the process is as follows.
@@ -52,6 +52,8 @@ class InAppNotification extends StatelessWidget {
   /// 2. Then the notification appear, it will stay at specified [duration].
   /// 3. After the [duration] has elapsed,
   ///    play the animation in reverse and dispose the notification.
+  ///
+  /// This method will awaits an animation that showing the notification.
   static FutureOr<void> show({
     required Widget child,
     required BuildContext context,
@@ -73,6 +75,11 @@ class InAppNotification extends StatelessWidget {
         duration: duration, curve: curve, dismissCurve: dismissCurve);
   }
 
+  /// Hides a shown notification.
+  ///
+  /// [context] is required, this is used to get internally used notification controller class which is subclass of `InheritedWidget`.
+  ///
+  /// This method will awaits an animation that showing the notification.
   static FutureOr<void> dismiss({required BuildContext context}) async {
     final controller = _NotificationController.of(context);
 
