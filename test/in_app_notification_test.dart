@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:in_app_notification/src/size_listenable_container.dart';
 
+T? _ambiguate<T>(T? value) => value;
+
 void main() {
   Widget base(Key key) => MaterialApp(
         home: InAppNotification(
@@ -17,7 +19,7 @@ void main() {
 
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    WidgetsBinding.instance!.resetEpoch();
+    _ambiguate(WidgetsBinding.instance)!.resetEpoch();
   });
 
   testWidgets('SizeListenableContainer test.', (tester) async {
