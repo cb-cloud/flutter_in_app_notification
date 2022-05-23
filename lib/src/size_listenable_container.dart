@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 
 // reference: https://qiita.com/najeira/items/0ff716971184042b1434
 
+T? _ambiguate<T>(T? value) => value;
+
 typedef SizeChangedCallback = void Function(Size size);
 
 class SizeListenableContainer extends SingleChildRenderObjectWidget {
@@ -42,7 +44,7 @@ class _SizeListenableRenderObject extends RenderProxyBox {
   }
 
   void _callback(Size size) {
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    _ambiguate(SchedulerBinding.instance)!.addPostFrameCallback((_) {
       onSizeChanged(size);
     });
   }

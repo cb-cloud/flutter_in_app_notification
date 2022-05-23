@@ -1,3 +1,8 @@
+## 1.1.1
+### FIX
+- Fixed warnings for Flutter3.0.0 
+  - Wrapped code containing warnings in `_ambiguate()`
+
 ## 1.1.0
 ### FEAT
 - Added `InAppNotification.dismiss()` method that hides notification programmatically.
