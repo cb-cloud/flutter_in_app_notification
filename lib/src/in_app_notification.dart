@@ -135,6 +135,7 @@ class _NotificationController extends InheritedWidget {
           width: state.screenSize.width,
           child: SizeListenableContainer(
             onSizeChanged: (size) {
+              if (state.notificationSizeCompleter.isCompleted) return;
               final topPadding = MediaQuery.of(context).viewPadding.top;
               state.notificationSizeCompleter
                   .complete(size + Offset(0, topPadding));

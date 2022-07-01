@@ -1,3 +1,8 @@
+## 1.1.2
+### FIX
+- Prevent some `Completer` error.
+  - When the size of a notification was changed unexpectedly, a `Future already completed.` error could occur.
+
 ## 1.1.1
 ### FIX
 - Fixed warnings for Flutter3.0.0 
