@@ -30,9 +30,12 @@ class __VsyncProviderState extends State<_VsyncProvider>
     duration: notificationHorizontalAnimationDuration,
   );
 
+  _NotificationController? _notificationController;
+
   @override
   Widget build(BuildContext context) {
-    return _NotificationController(
+    _notificationController?.state.overlay?.remove();
+    _notificationController = _NotificationController(
       state: _NotificationState(
         showController: _showController,
         verticalAnimationController: _verticalAnimationController,
@@ -40,6 +43,7 @@ class __VsyncProviderState extends State<_VsyncProvider>
       ),
       child: widget.child,
     );
+    return _notificationController!;
   }
 
   @override
@@ -47,6 +51,7 @@ class __VsyncProviderState extends State<_VsyncProvider>
     _showController.dispose();
     _verticalAnimationController.dispose();
     _horizontalAnimationController.dispose();
+    _notificationController?.state.overlay?.remove();
     super.dispose();
   }
 }
