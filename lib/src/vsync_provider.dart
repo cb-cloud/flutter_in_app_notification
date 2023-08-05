@@ -35,7 +35,7 @@ class __VsyncProviderState extends State<_VsyncProvider>
   @override
   Widget build(BuildContext context) {
     _notificationController?.state.overlay?.remove();
-    _notificationController = _NotificationController(
+    _notificationController ??= _NotificationController(
       state: _NotificationState(
         showController: _showController,
         verticalAnimationController: _verticalAnimationController,
