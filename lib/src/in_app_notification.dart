@@ -188,7 +188,9 @@ class _NotificationController extends InheritedWidget {
 
   Future<void> dismiss({bool shouldAnimation = true, double from = 1.0}) async {
     state.timer?.cancel();
+    print("dismiss triggered");
     if (state.onDismiss != null) {
+      print("on dismiss not null");
       state.onDismiss!();
     }
 
