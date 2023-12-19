@@ -120,7 +120,6 @@ class _NotificationController extends InheritedWidget {
     state.verticalAnimationController.dragDistance = 0.0;
     state.horizontalAnimationController.dragDistance = 0.0;
     state.onTap = onTap;
-    state.onDismiss = onDismiss;
 
     state.overlay = OverlayEntry(
       builder: (context) {
@@ -188,13 +187,13 @@ class _NotificationController extends InheritedWidget {
 
   Future<void> dismiss({bool shouldAnimation = true, double from = 1.0}) async {
     state.timer?.cancel();
-    print("dismiss triggered");
-    if (state.onDismiss != null) {
-      print("on dismiss not null");
-      state.onDismiss!();
-    }
 
     await state.showController.reverse(from: shouldAnimation ? from : 0.0);
+
+    print("dismiss triggered");
+    if (state.onDismiss != null) {
+      state.onDismiss!();
+    }
 
     state.overlay?.remove();
     state.overlay = null;
