@@ -64,8 +64,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             Slider.adaptive(
               value: _minHeight,
-              onChanged: (value) =>
-                  setState(() => _minHeight = value.floorToDouble()),
+              onChanged: (value) => setState(() => _minHeight = value.floorToDouble()),
               min: 0.0,
               max: MediaQuery.of(context).size.height,
             ),
@@ -80,6 +79,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   context: context,
                   onTap: () => print('Notification tapped!'),
+                  onDismiss: () => print('Notification dismissed!'),
                   duration: Duration(milliseconds: _duration),
                 );
               },
@@ -148,10 +148,7 @@ class NotificationBody extends StatelessWidget {
                   child: Center(
                     child: Text(
                       'Count: $count',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline4!
-                          .copyWith(color: Colors.white),
+                      style: Theme.of(context).textTheme.headline4!.copyWith(color: Colors.white),
                     ),
                   ),
                 ),

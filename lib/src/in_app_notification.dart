@@ -115,7 +115,7 @@ class _NotificationController extends InheritedWidget {
     VoidCallback? onTap,
     VoidCallback? onDismiss,
   }) async {
-    await dismiss(shouldAnimation: !state.showController.isDismissed);
+    (state.overlay != null) ? await dismiss(shouldAnimation: !state.showController.isDismissed) : null;
 
     state.verticalAnimationController.dragDistance = 0.0;
     state.horizontalAnimationController.dragDistance = 0.0;
@@ -188,14 +188,10 @@ class _NotificationController extends InheritedWidget {
 
   Future<void> dismiss({bool shouldAnimation = true, double from = 1.0}) async {
     state.timer?.cancel();
-    print("dismiss triggered");
-    if (state.onDismiss != null) {
-      print("on dismiss not null");
-      state.onDismiss!();
-    }
 
     await state.showController.reverse(from: shouldAnimation ? from : 0.0);
 
+    state.onDismiss != null ? state.onDismiss!() : null;
     state.overlay?.remove();
     state.overlay = null;
     state.notificationSizeCompleter = Completer();
